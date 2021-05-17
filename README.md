@@ -1,3 +1,5 @@
+[![Ruby](https://github.com/ko1/calleree/actions/workflows/ruby.yml/badge.svg)](https://github.com/ko1/calleree/actions/workflows/ruby.yml)
+
 # Calleree
 
 Calleree helps to analyze Ruby's caller-callee relationships.
