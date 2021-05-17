@@ -45,7 +45,7 @@ And this program shows:
 ```
 [[["test.rb", 14], ["test.rb", 5], 1],
  [["test.rb", 16], ["/mnt/c/ko1/src/rb/calleree/lib/calleree.rb", 24], 1]]
-...
+```
 
 The `Calleree.result` method returns an array of arrays which contains `[[caller_path, caller_line], [callee_path, callee_line], called_caount]`.
 
