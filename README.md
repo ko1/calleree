@@ -115,6 +115,25 @@ manual       0.864746   0.000000   0.864746 (  0.864833) # about x175
 calleree     0.031616   0.000000   0.031616 (  0.031620) # about x6
 ```
 
+The called method `foo` and `bar` don't do anything so the above result shows the almost worst case.
+
+For example if we introduce the allocation by changing the definition of `foo` with:
+
+```ruby
+def foo
+  :foo.to_s
+end
+```
+
+The result becomes more moderated.
+
+```
+                 user     system      total        real
+none         0.012348   0.001953   0.014301 (  0.014328)
+manual       0.858473   0.000650   0.859123 (  0.859259) # about x61
+calleree     0.038204   0.000000   0.038204 (  0.038214) # about x2.7
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
