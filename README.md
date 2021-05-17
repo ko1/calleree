@@ -37,7 +37,7 @@ Or install it yourself as:
     11
     12  Calleree.start
     13
-    14  foo
+    14  bar
     15
     16  pp Calleree.result
 ```
@@ -45,13 +45,18 @@ Or install it yourself as:
 And this program shows:
 
 ```
-[[["test.rb", 14], ["test.rb", 5], 1],
- [["test.rb", 16], ["/mnt/c/ko1/src/rb/calleree/lib/calleree.rb", 24], 1]]
+[[["test.rb", 14], ["test.rb", 9], 1],
+ [["test.rb", 9], ["test.rb", 5], 1],
+ [["test.rb", 16], ["/mnt/c/ko1/src/rb/calleree/lib/calleree.rb", 23], 1]]
 ```
 
 The `Calleree.result` method returns an array of arrays which contains `[[caller_path, caller_line], [callee_path, callee_line], called_caount]`.
 
-In this case, `foo` at `["test.rb", 5]` is called at `["test.rb", 14]` only once.
+In this case:
+
+* A method `bar` at `["test.rb", 9]` is called from `["test.rb", 14]` only once.
+* A method `foo` at `["test.rb", 5]` is called from `bar` at  `["test.rb", 9]` once.
+* A method `Calleree.result` at `["...calleree.rb", 23]` is called from `["test.rb", 16]`.
 
 * You can stop the analisys with `Calleree.stop`. `Calleree.start` will continue the analysis.
 * You can use block with `Calleree.start do ... end`.
