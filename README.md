@@ -58,8 +58,10 @@ In this case:
 * A method `foo` at `["test.rb", 5]` is called from `bar` at  `["test.rb", 9]` once.
 * A method `Calleree.result` at `["...calleree.rb", 23]` is called from `["test.rb", 16]`.
 
-* You can stop the analisys with `Calleree.stop`. `Calleree.start` will continue the analysis.
+Additional usage:
+
 * You can use block with `Calleree.start do ... end`.
+* You can stop the analisys with `Calleree.stop`. `Calleree.start` will continue the analysis.
 * You can clear the result if `Calleree.result(clear: true)` is passed.
 
 ## Development
