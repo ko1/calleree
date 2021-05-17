@@ -33,7 +33,7 @@ increment_i(st_data_t *key, st_data_t *value, st_data_t arg, int existing)
 }
 
 static void
-erree_called(VALUE tpval, void *ptr)
+eree_called(VALUE tpval, void *ptr)
 {
     struct eree_data *data = ptr;
     VALUE frames[2];
@@ -52,7 +52,7 @@ static VALUE
 eree_start(VALUE self)
 {
     if (!eree_data.tp) {
-        eree_data.tp = rb_tracepoint_new(0, RUBY_EVENT_CALL, erree_called, &eree_data);
+        eree_data.tp = rb_tracepoint_new(0, RUBY_EVENT_CALL, eree_called, &eree_data);
         eree_data.caller_callee = st_init_numtable();
     }
     rb_tracepoint_enable(eree_data.tp);
