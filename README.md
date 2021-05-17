@@ -64,6 +64,57 @@ Additional usage:
 * You can stop the analisys with `Calleree.stop`. `Calleree.start` will continue the analysis.
 * You can clear the result if `Calleree.result(clear: true)` is passed.
 
+## Performance
+
+The feature of this library can be implemented by Ruby (see `manual` method in the following code).
+The difference is the performance.
+
+```ruby
+require 'calleree'
+
+def foo
+  :foo
+end
+
+def bar
+  foo
+end
+
+def demo
+  100_000.times{
+    bar
+  }
+end
+
+def manual
+  result = Hash.new(0)
+  TracePoint.new(:call){
+    callee, caller = caller_locations(1, 2).map{|loc| [loc.path, loc.lineno]}
+    result[[caller, callee]] += 1
+  }.enable{
+    yield
+  }
+  result
+end
+
+require 'benchmark'
+
+Benchmark.bm(10){|x|
+  x.report('none'){ demo }
+  x.report('manual'){ manual{ demo } }
+  x.report('calleree'){ Calleree.start{ demo } }
+}
+```
+
+The result of above benchmark is:
+
+```
+                 user     system      total        real
+none         0.004860   0.000972   0.005832 (  0.005828)
+manual       0.864746   0.000000   0.864746 (  0.864833) # about x175
+calleree     0.031616   0.000000   0.031616 (  0.031620) # about x6
+```
+
 ## Development
 
 After checking out the repo, run `bin/setup` to install dependencies. Then, run `rake test` to run the tests. You can also run `bin/console` for an interactive prompt that will allow you to experiment.
