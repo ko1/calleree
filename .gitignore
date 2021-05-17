@@ -1,0 +1,15 @@
+/.bundle/
+/.yardoc
+/_yardoc/
+/coverage/
+/doc/
+/pkg/
+/spec/reports/
+/tmp/
+/lib/calleree/calleree.so
+*.bundle
+*.so
+*.o
+*.a
+mkmf.log
+test.rb
