@@ -102,6 +102,7 @@ void
 Init_calleree(void)
 {
     eree_data.files = rb_hash_new();
+    rb_funcall(eree_data.files, rb_intern("compare_by_identity"), 0);
     rb_gc_register_mark_object(eree_data.files);
 
     rb_mCalleree = rb_define_module("Calleree");
