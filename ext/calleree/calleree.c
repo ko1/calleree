@@ -6,8 +6,8 @@ VALUE rb_mCalleree;
 
 struct eree_data {
     VALUE tp; // TracePoint.new(:call)
-    VALUE files; // name -> [ {[fname, 1], ... } ]
-    struct st_table* caller_callee;  // [posnum | posnum] -> cnt
+    VALUE files; // name -> [ nil, posnum1, posnum,2 ... ]
+    struct st_table* caller_callee;  // { (posnumX | posnumY) => cnt, ... }
     int last_posnum;
 } eree_data;
 
@@ -20,7 +20,9 @@ posnum(struct eree_data *data, VALUE path, int line)
         rb_hash_aset(data->files, path, lines = rb_ary_new());
     }
     if (NIL_P(posnumv = rb_ary_entry(lines, line))) {
-        rb_ary_store(lines, line, posnumv = INT2FIX(data->last_posnum++));
+        int posnum = ++data->last_posnum;
+        if (RB_UNLIKELY(posnum == 0)) rb_raise(rb_eRuntimeError, "posnum overflow");
+        rb_ary_store(lines, line, posnumv = INT2FIX(posnum));
     }
     return FIX2INT(posnumv);
 }
