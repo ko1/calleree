@@ -53,6 +53,7 @@ eree_start(VALUE self)
 {
     if (!eree_data.tp) {
         eree_data.tp = rb_tracepoint_new(0, RUBY_EVENT_CALL, eree_called, &eree_data);
+        rb_gc_register_mark_object(eree_data.tp);
         eree_data.caller_callee = st_init_numtable();
     }
     rb_tracepoint_enable(eree_data.tp);
