@@ -20,19 +20,24 @@ module Calleree
   end
 
   def self.result clear: false
-    posnum_set = []
-    Calleree.raw_posmap.each{|file, lines|
-      lines.each_with_index{|posnum, line|
-        posnum_set[posnum] = [file, line] if posnum
+    if respond_to? :raw_posmap
+      posnum_set = []
+      Calleree.raw_posmap.each{|file, lines|
+        lines.each_with_index{|posnum, line|
+          posnum_set[posnum] = [file, line] if posnum
+        }
       }
-    }
-    # pp posnum_set
-    rs = []
-    Calleree.raw_result(clear).each{|i, j, cnt|
-      er = posnum_set[i]
-      ee = posnum_set[j]
-      rs << [er, ee, cnt] if er && ee
-    }
-    rs
+      # pp posnum_set
+      rs = []
+      Calleree.raw_result(clear).each{|i, j, cnt|
+        er = posnum_set[i]
+        ee = posnum_set[j]
+        rs << [er, ee, cnt] if er && ee
+      }
+      rs
+    else
+      # USE_LOCINDEX version
+      Calleree.raw_result(clear)
+    end
   end
 end

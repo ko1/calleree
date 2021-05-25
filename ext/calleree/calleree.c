@@ -2,6 +2,8 @@
 #include "ruby/debug.h"
 #include "ruby/st.h"
 
+#define USE_LOCINDEX 0 // Ruby 3.1 feature trial
+
 VALUE rb_mCalleree;
 
 struct eree_data {
@@ -11,6 +13,7 @@ struct eree_data {
     int last_posnum;
 } eree_data;
 
+#if !USE_LOCINDEX
 static unsigned int
 posnum(struct eree_data *data, VALUE path, int line)
 {
@@ -26,6 +29,7 @@ posnum(struct eree_data *data, VALUE path, int line)
     }
     return (unsigned int)FIX2INT(posnumv);
 }
+#endif
 
 static int
 increment_i(st_data_t *key, st_data_t *value, st_data_t arg, int existing)
@@ -38,13 +42,21 @@ static void
 eree_called(VALUE tpval, void *ptr)
 {
     struct eree_data *data = ptr;
+
+#if !USE_LOCINDEX
     VALUE frames[2];
     int lines[2];
     // int start, int limit, VALUE *buff, int *lines);
     rb_profile_frames(1, 2, frames, lines);
     unsigned int callee_posnum = posnum(data, rb_profile_frame_path(frames[0]), lines[0]);
     unsigned int caller_posnum = posnum(data, rb_profile_frame_path(frames[1]), lines[1]);
-    // rb_p(rb_profile_frame_path(frames[1]));
+#else
+    unsigned int locs[2];
+    rb_profile_locindex(0, 2, locs, 0);
+    unsigned int callee_posnum = locs[0];// posnum(data, rb_profile_frame_path(frames[0]), lines[0]);
+    unsigned int caller_posnum = locs[1];// posnum(data, rb_profile_frame_path(frames[1]), lines[1]);
+#endif
+
     st_data_t eree_pair = (((VALUE)caller_posnum << 32) | ((VALUE)callee_posnum));
     st_update(data->caller_callee, eree_pair, increment_i, 0);
 }
@@ -76,7 +88,19 @@ raw_result_i(st_data_t key, st_data_t val, st_data_t data)
     VALUE ary = (VALUE)data;
     unsigned int callee_posnum = (unsigned int)(key & 0xffffffff);
     unsigned int caller_posnum = (unsigned int)(key >> 32);
+#if !USE_LOCINDEX
     rb_ary_push(ary, rb_ary_new_from_args(3, UINT2NUM(caller_posnum), UINT2NUM(callee_posnum), INT2FIX((int)val)));
+#else
+    VALUE er_path, ee_path;
+    int er_line, ee_line;
+    rb_locindex_resolve(callee_posnum, &ee_path, &ee_line);
+    rb_locindex_resolve(caller_posnum, &er_path, &er_line);
+
+    rb_ary_push(ary, rb_ary_new_from_args(3,
+                                          rb_ary_new_from_args(2, er_path, INT2FIX(er_line)),
+                                          rb_ary_new_from_args(2, ee_path, INT2FIX(ee_line)),
+                                          INT2FIX((int)val)));
+#endif
     return ST_CONTINUE;
 }
 
@@ -94,11 +118,13 @@ eree_raw_result(VALUE self, VALUE clear_p)
     return ary;
 }
 
+#if !USE_LOCINDEX
 static VALUE
 eree_raw_posmap(VALUE self)
 {
     return eree_data.files;
 }
+#endif
 
 void
 Init_calleree(void)
@@ -111,5 +137,8 @@ Init_calleree(void)
     rb_define_singleton_method(rb_mCalleree, "_start", eree_start, 0);
     rb_define_singleton_method(rb_mCalleree, "_stop", eree_stop, 0);
     rb_define_singleton_method(rb_mCalleree, "raw_result", eree_raw_result, 1);
+
+#if !USE_LOCINDEX
     rb_define_singleton_method(rb_mCalleree, "raw_posmap", eree_raw_posmap, 0);
+#endif
 }
