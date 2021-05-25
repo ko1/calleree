@@ -11,7 +11,7 @@ struct eree_data {
     int last_posnum;
 } eree_data;
 
-static int
+static unsigned int
 posnum(struct eree_data *data, VALUE path, int line)
 {
     VALUE lines, posnumv;
@@ -24,7 +24,7 @@ posnum(struct eree_data *data, VALUE path, int line)
         if (RB_UNLIKELY(posnum == 0)) rb_raise(rb_eRuntimeError, "posnum overflow");
         rb_ary_store(lines, line, posnumv = INT2FIX(posnum));
     }
-    return FIX2INT(posnumv);
+    return (unsigned int)FIX2INT(posnumv);
 }
 
 static int
@@ -42,11 +42,10 @@ eree_called(VALUE tpval, void *ptr)
     int lines[2];
     // int start, int limit, VALUE *buff, int *lines);
     rb_profile_frames(1, 2, frames, lines);
-    int callee_posnum = posnum(data, rb_profile_frame_path(frames[0]), lines[0]);
-    int caller_posnum = posnum(data, rb_profile_frame_path(frames[1]), lines[1]);
+    unsigned int callee_posnum = posnum(data, rb_profile_frame_path(frames[0]), lines[0]);
+    unsigned int caller_posnum = posnum(data, rb_profile_frame_path(frames[1]), lines[1]);
     // rb_p(rb_profile_frame_path(frames[1]));
     st_data_t eree_pair = (((VALUE)caller_posnum << 32) | ((VALUE)callee_posnum));
-
     st_update(data->caller_callee, eree_pair, increment_i, 0);
 }
 
@@ -75,9 +74,9 @@ static int
 raw_result_i(st_data_t key, st_data_t val, st_data_t data)
 {
     VALUE ary = (VALUE)data;
-    int callee_posnum = (int)(key & 0xffffffff);
-    int caller_posnum = (int)(key >> 32);
-    rb_ary_push(ary, rb_ary_new_from_args(3, INT2FIX(caller_posnum), INT2FIX(callee_posnum), INT2FIX((int)val)));
+    unsigned int callee_posnum = (unsigned int)(key & 0xffffffff);
+    unsigned int caller_posnum = (unsigned int)(key >> 32);
+    rb_ary_push(ary, rb_ary_new_from_args(3, UINT2NUM(caller_posnum), UINT2NUM(callee_posnum), INT2FIX((int)val)));
     return ST_CONTINUE;
 }
 
