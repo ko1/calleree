@@ -47,18 +47,25 @@ eree_called(VALUE tpval, void *ptr)
     VALUE frames[2];
     int lines[2];
     // int start, int limit, VALUE *buff, int *lines);
-    rb_profile_frames(1, 2, frames, lines);
-    unsigned int callee_posnum = posnum(data, rb_profile_frame_path(frames[0]), lines[0]);
-    unsigned int caller_posnum = posnum(data, rb_profile_frame_path(frames[1]), lines[1]);
+    int r = rb_profile_frames(1, 2, frames, lines);
+
+    if (r >= 2) {
+        unsigned int callee_posnum = posnum(data, rb_profile_frame_absolute_path(frames[0]), lines[0]);
+        unsigned int caller_posnum = posnum(data, rb_profile_frame_absolute_path(frames[1]), lines[1]);
+
+        st_data_t eree_pair = (((VALUE)caller_posnum << 32) | ((VALUE)callee_posnum));
+        st_update(data->caller_callee, eree_pair, increment_i, 0);
+    }
 #else
     unsigned int locs[2];
-    rb_profile_locindex(0, 2, locs, 0);
-    unsigned int callee_posnum = locs[0];// posnum(data, rb_profile_frame_path(frames[0]), lines[0]);
-    unsigned int caller_posnum = locs[1];// posnum(data, rb_profile_frame_path(frames[1]), lines[1]);
+    int r = rb_profile_locindex(0, 2, locs, 0);
+    if (r >= 2) {
+        unsigned int callee_posnum = locs[0];// posnum(data, rb_profile_frame_absolute_path (frames[0]), lines[0]);
+        unsigned int caller_posnum = locs[1];// posnum(data, rb_profile_frame_absolute_path (frames[1]), lines[1]);
+        st_data_t eree_pair = (((VALUE)caller_posnum << 32) | ((VALUE)callee_posnum));
+        st_update(data->caller_callee, eree_pair, increment_i, 0);
+    }
 #endif
-
-    st_data_t eree_pair = (((VALUE)caller_posnum << 32) | ((VALUE)callee_posnum));
-    st_update(data->caller_callee, eree_pair, increment_i, 0);
 }
 
 static VALUE
